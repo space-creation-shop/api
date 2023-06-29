@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('api:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+class Bourse {
+  constructor(nomMonnaie, prixInitial, quantiteEnCirculation) {
+    this.nomMonnaie = nomMonnaie;
+    this.prixInitial = prixInitial;
+    this.prixActuel = prixInitial;
+    this.quantiteEnCirculation = quantiteEnCirculation;
+  }
+
+  // Méthode pour générer un prix aléatoire
+  genererPrixAleatoire() {
+    const variation = Math.random() * 0.1; // Variation aléatoire entre 0 et 0.1
+    const signe = Math.random() < 0.5 ? -1 : 1; // Signe aléatoire -1 ou 1
+    this.prixActuel = this.prixActuel + (this.prixActuel * variation * signe * (1 - this.quantiteEnCirculation / 10000));
+  }
+
+  // Méthode pour obtenir le prix actuel
+  getPrixActuel() {
+    return this.prixActuel.toFixed(2); // Rendre le prix actuel à 2 décimales
+  }
+}
+/**
+ * Create HTTP server.
+ */
+const bourse = new Bourse("test coin", 100, 0);
+const server = http.createServer(app);
+const io = require('socket.io')(server);
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+io.on('connection', (socket) => {
+  console.log('Nouvelle connexion WebSocket');
+
+  // Envoyer la valeur de la bourse toutes les secondes
+  setInterval(() => {
+    bourse.genererPrixAleatoire(); // Valeur aléatoire pour l'exemple
+    socket.emit('nouvelleValeur', bourse.getPrixActuel());
+  }, 1000);
+});
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
