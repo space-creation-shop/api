@@ -6,13 +6,13 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     canvas {
-      max-width: 800px;
+      max-width: 100%;
       margin: 0 auto;
     }
   </style>
 </head>
-<body>
-  <h1>Simulateur de bourse</h1>
+<body style="background-color: black;">
+  <h1 style="color: white;">Simulateur de bourse</h1>
   <canvas id="graphique"></canvas>
 
   <script>
@@ -26,8 +26,8 @@
         datasets: [{
           label: 'Valeur de la bourse',
           data: [],
-          borderColor: 'blue',
-          backgroundColor: 'rgba(0, 0, 255, 0.2)',
+          borderColor: 'yellow',
+          backgroundColor: 'rgba(255, 255, 0, 0.2)',
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.3,
@@ -45,14 +45,21 @@
             display: true,
             ticks: {
               display: false
+            },
+            grid: {
+              display: false
             }
           },
           y: {
             display: true,
             suggestedMin: 0,
-            suggestedMax: 1000,
+            suggestedMax: 500,
             ticks: {
-              stepSize: 100
+              stepSize: 1,
+              color: 'white'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.2)'
             }
           }
         },
@@ -76,23 +83,24 @@
         duration: 0 // Désactiver les animations de mise à jour
       });
     };
-
-    // Gestion des nouvelles valeurs de la bourse
-    socket.on('nouvelleValeur', (valeur) => {
-      const tempsActuel = new Date().toLocaleTimeString();
-      ajouterDonnees(tempsActuel, valeur);
-    });
-
-    // Supprimer les données les plus anciennes du graphique
     const supprimerDonneesAnciennes = () => {
-      if (graphique.data.labels.length >= 10) {
+      if (graphique.data.labels.length >= 100) {
         graphique.data.labels.shift();
         graphique.data.datasets[0].data.shift();
       }
     };
+    // Gestion des nouvelles valeurs de la bourse
+    socket.on('nouvelleValeur', (valeur) => {
+      const tempsActuel = new Date().toLocaleTimeString();
+      ajouterDonnees(tempsActuel, valeur);
+      supprimerDonneesAnciennes()
+    });
+
+    // Supprimer les données les plus anciennes du graphique
+
 
     // Mise à jour continue du graphique
-
+  
   </script>
 </body>
 </html>

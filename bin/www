@@ -20,13 +20,34 @@ class Bourse {
     this.prixInitial = prixInitial;
     this.prixActuel = prixInitial;
     this.quantiteEnCirculation = quantiteEnCirculation;
+    this.poidsMontee = 0.7; // Poids initial de la montée de la bourse (entre 0 et 1)
+    this.poidsDescente = 0.3; // Poids initial de la descente de la bourse (entre 0 et 1)
   }
 
-  // Méthode pour générer un prix aléatoire
+  // Méthode pour générer un prix aléatoire avec prise en compte des poids
   genererPrixAleatoire() {
-    const variation = Math.random() * 0.1; // Variation aléatoire entre 0 et 0.1
-    const signe = Math.random() < 0.5 ? -1 : 1; // Signe aléatoire -1 ou 1
-    this.prixActuel = this.prixActuel + (this.prixActuel * variation * signe * (1 - this.quantiteEnCirculation / 10000));
+    const random = Math.random(); // Nombre aléatoire entre 0 et 1
+
+    if (random < this.poidsMontee) {
+      this.prixActuel *= 1.02; // Augmentation de 2%
+    } else if (random < this.poidsMontee + this.poidsDescente) {
+      this.prixActuel *= 0.98; // Diminution de 2%
+    }
+
+    this.prixActuel *= (1 - this.quantiteEnCirculation / 10000);
+
+    // Ajustement des poids en fonction de la valeur de la bourse
+    if (this.prixActuel > this.prixInitial) {
+      this.poidsMontee -= 0.01; // Réduction du poids de la montée
+      this.poidsDescente += 0.01; // Augmentation du poids de la descente
+    } else {
+      this.poidsMontee += 0.01; // Augmentation du poids de la montée
+      this.poidsDescente -= 0.01; // Réduction du poids de la descente
+    }
+    console.log(this)
+    // Limiter les poids entre 0 et 1
+    this.poidsMontee = Math.max(0, Math.min(1, this.poidsMontee));
+    this.poidsDescente = Math.max(0, Math.min(1, this.poidsDescente));
   }
 
   // Méthode pour obtenir le prix actuel
@@ -34,12 +55,21 @@ class Bourse {
     return this.prixActuel.toFixed(2); // Rendre le prix actuel à 2 décimales
   }
 }
+
+
+const socketIO = require('socket.io');
+
+
+const server = http.createServer(app);
+const io = socketIO(server);
+
+
 /**
  * Create HTTP server.
  */
-const bourse = new Bourse("test coin", 100, 0);
-const server = http.createServer(app);
-const io = require('socket.io')(server);
+
+const bourse = new Bourse("test coin", 100, 10);
+
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -48,10 +78,12 @@ io.on('connection', (socket) => {
 
   // Envoyer la valeur de la bourse toutes les secondes
   setInterval(() => {
+
     bourse.genererPrixAleatoire(); // Valeur aléatoire pour l'exemple
     socket.emit('nouvelleValeur', bourse.getPrixActuel());
   }, 1000);
 });
+
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
