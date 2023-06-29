@@ -44,7 +44,7 @@ class Bourse {
       this.poidsMontee += 0.01; // Augmentation du poids de la montée
       this.poidsDescente -= 0.01; // Réduction du poids de la descente
     }
-    console.log(this)
+
     // Limiter les poids entre 0 et 1
     this.poidsMontee = Math.max(0, Math.min(1, this.poidsMontee));
     this.poidsDescente = Math.max(0, Math.min(1, this.poidsDescente));
@@ -54,21 +54,91 @@ class Bourse {
   getPrixActuel() {
     return this.prixActuel.toFixed(2); // Rendre le prix actuel à 2 décimales
   }
+
+  // Méthode d'achat
+  acheter(quantite) {
+    if (quantite > this.quantiteEnCirculation) {
+      //console.log('Quantité insuffisante en circulation');
+      return 0
+    }
+    const prixTotal = quantite * this.prixActuel;
+    console.log(`Achat de ${quantite} ${this.nomMonnaie} pour un prix total de ${prixTotal.toFixed(2)}`);
+
+    // Mettre à jour la quantité en circulation
+    this.quantiteEnCirculation -= quantite;
+  return 1
+  }
+
+  // Méthode de vente
+  vendre(quantite) {
+   
+
+    const prixTotal = quantite * this.prixActuel;
+    console.log(`Vente de ${quantite} ${this.nomMonnaie} pour un prix total de ${prixTotal.toFixed(2)}`);
+
+    // Mettre à jour la quantité en circulation
+    this.quantiteEnCirculation += quantite;
+  }
 }
+// Fonction pour effectuer une transaction en fonction du cours
+// Stockage du nombre de pièces
+let nombreDePieces = 10;
+
+// Fonction pour effectuer une transaction en fonction du cours
+
+
+// Utilisation de la fonction dans la mise à jour de la valeur de la bourse
+setInterval(() => {
+  bourse.genererPrixAleatoire();
+  io.emit('nouvelleValeur', bourse.getPrixActuel());
+
+  // Appel de la fonction pour effectuer une transaction
+
+}, 1000); // Mettre à jour toutes les secondes
+
+
+// Utilisation de la fonction dans la mise à jour de la valeur de la bourse
+
+
 
 
 const socketIO = require('socket.io');
 
-
+let argent =10000
 const server = http.createServer(app);
 const io = socketIO(server);
 
+// Écoute de l'événement 'acheter' du client
+io.on('acheter', () => {
+  const quantiteAchat = Math.floor(Math.random() * 100) + 1; // Quantité aléatoire entre 1 et 100
+  console.log(quantiteAchat)
+  // Vérification si l'achat est possible
+  if (bourse.acheter(quantiteAchat)) {
+    argent -= bourse.prixActuel * quantiteAchat; // Soustraire le montant dépensé de l'argent disponible
+  }
+
+  // Émission de la quantité d'argent mise à jour vers le client
+  io.emit('argent', argent);
+});
+
+// Écoute de l'événement 'vendre' du client
+io.on('vendre', () => {
+  const quantiteVente = Math.floor(Math.random() * Math.min(100, nombreDePieces)) + 1; // Quantité aléatoire entre 1 et le nombre de pièces en possession
+  console.log(quantiteVente)
+  // Vérification si la vente est possible
+  if (bourse.vendre(quantiteVente)) {
+    argent += bourse.prixActuel * quantiteVente; // Ajouter le montant gagné à l'argent disponible
+  }
+
+  // Émission de la quantité d'argent mise à jour vers le client
+  io.emit('argent', argent);
+});
 
 /**
  * Create HTTP server.
  */
 
-const bourse = new Bourse("test coin", 100, 10);
+const bourse = new Bourse("test coin", 100, 100);
 
 /**
  * Listen on provided port, on all network interfaces.

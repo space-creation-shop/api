@@ -11,10 +11,15 @@
     }
   </style>
 </head>
-<body style="background-color: black;">
+<body >
   <h1 style="color: white;">Simulateur de bourse</h1>
-  <canvas id="graphique"></canvas>
-
+  <canvas id="graphique" style="background-color: black;"></canvas>
+  <div >
+    <h3>Actions disponibles :</h3>
+    <button id="acheterBtn">Acheter</button>
+    <button id="vendreBtn">Vendre</button>
+    <p>Quantité d'argent disponible : <span id="argent"></span></p>
+  </div>
   <script>
     const socket = io();
 
@@ -93,9 +98,27 @@
     socket.on('nouvelleValeur', (valeur) => {
       const tempsActuel = new Date().toLocaleTimeString();
       ajouterDonnees(tempsActuel, valeur);
-      supprimerDonneesAnciennes()
+     // supprimerDonneesAnciennes()
+    });
+    const acheterBtn = document.getElementById('acheterBtn');
+    const vendreBtn = document.getElementById('vendreBtn');
+
+    acheterBtn.addEventListener('click', () => {
+      socket.emit('acheter');
+      alert("achat de coin")
     });
 
+    vendreBtn.addEventListener('click', () => {
+      socket.emit('vendre');
+    });
+    const afficherArgent = (argent) => {
+      document.getElementById('argent').textContent = argent;
+    };
+    // Mise à jour de la quantité d'argent
+    socket.on('argent', (argent) => {
+      afficherArgent(argent);
+      console.log(argent)
+    });
     // Supprimer les données les plus anciennes du graphique
 
 
