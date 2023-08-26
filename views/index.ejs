@@ -84,7 +84,7 @@
       });
     };
     const supprimerDonneesAnciennes = () => {
-      if (graphique.data.labels.length >= 100) {
+      if (graphique.data.labels.length >= 10) {
         graphique.data.labels.shift();
         graphique.data.datasets[0].data.shift();
       }
