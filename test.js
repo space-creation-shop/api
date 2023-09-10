@@ -266,14 +266,15 @@ function makeBotDecisionsBasedOnPercentageChange() {
 
   for (let enterpriseIndex = 0; enterpriseIndex < bourse.enterprises.length; enterpriseIndex++) {
     const enterprise = bourse.enterprises[enterpriseIndex];
-
+    console.log(enterprise)
     if (!enterprise) {
       console.log(`Invalid enterprise at index ${enterpriseIndex}.`);
       continue; // Passe à l'entreprise suivante en cas d'entreprise invalide
     }
     if (!enterprise) {
       console.log(`Invalid enterprise index for enterprise at index ${enterpriseIndex}.`);
-      return;
+      continue
+      ;
     }
 
     // Calculez le pourcentage de changement par rapport au prix initial
