@@ -4,19 +4,30 @@ const Enterprise = require('./entreprise'); // Assurez-vous d'avoir le fichier e
 
 class Bourse {
   constructor(nomMonnaie, prixInitial, quantiteEnCirculation, maxqqt) {
+    this.db = new SimpleJsonDB('database.json');
+    this.historiquePrix = this.db.get('historiquePrix')||[];
     this.nomMonnaie = nomMonnaie;
-    this.prixInitial = prixInitial;
+    this.prixInitial = this.historiquePrix[this.historiquePrix.length-1]||prixInitial
     this.prixActuel = prixInitial;
     this.quantiteEnCirculation = quantiteEnCirculation;
     this.maxqqt = maxqqt;
-    this.poidsMontee = 0.2;
-    this.poidsDescente = 0.9;
+    this.poidsMontee = 0.7;
+    this.poidsDescente = 0.4;
 
-    this.db = new SimpleJsonDB('database.json');
+    
     this.bankAccounts = this.db.get('bankAccounts') ||[]
     this.enterprises = []
-    this.historiquePrix = this.db.get('historiquePrix')||[];
+    
     this.coursEntreprises = this.db.get('coursEntreprises')||[];
+  }
+  load=()=>{
+    if(!this.db.get('enterprises')){
+      return this
+    }
+    this.db.get('enterprises').map((item)=>{
+      this.addenterprise(item.name,item.StockPrice)
+    })
+    return this
   }
   getBalance(accountId) {
     const account = this.bankAccounts.find((acc) => acc.id === accountId);
@@ -26,12 +37,26 @@ class Bourse {
       return "Invalid account ID.";
     }
   }
-  addEnterprise(name, initialStockPrice) {
-    const enterprise = new Enterprise(name, initialStockPrice);
-    this.enterprises.push(enterprise);
-    this.saveEnterprises(); // Sauvegardez les entreprises dans la base de données
-    return `Enterprise ${name} added.`;
-  }
+  
+    // ...
+    
+    addenterprise(name, initialStockPrice) {
+      // Vérifiez si une entreprise avec le même nom existe déjà
+      const existingEnterprise = this.enterprises.find((enterprise) => enterprise.name === name);
+      
+      if (existingEnterprise) {
+        console.log(`An enterprise with the name "${name}" already exists.`);
+        return null; // Retournez null pour indiquer qu'une entreprise avec le même nom existe déjà
+      }
+      
+      const newEnterprise = new Enterprise(name, initialStockPrice);
+      this.enterprises.push(newEnterprise);
+      return newEnterprise;
+    }
+  
+    // ...
+  
+  
   addBankAccount(initialBalance = 0) {
     const newAccount = new BankAccount(initialBalance);
     this.bankAccounts.push(newAccount);
@@ -42,7 +67,7 @@ class Bourse {
     try {
       this.historiquePrix.push(this.prixActuel);
       this.db.set('historiquePrix', this.historiquePrix);
-      console.log('Historique des prix enregistré.');
+     // console.log('Historique des prix enregistré.');
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement de l\'historique des prix :', error);
     }
@@ -71,43 +96,56 @@ class Bourse {
     }
   }
 
-  genererPrixAleatoire() {
-    this.saveHistoriquePrix()
-    const random = Math.random();
+    // ...
   
-    if (random < this.poidsMontee) {
-      this.prixActuel *= 1.02; // Augmentation de 2%
-    } else if (random < this.poidsMontee + this.poidsDescente) {
-      this.prixActuel *= 0.98; // Diminution de 2%
-    }
+    genererPrixAleatoire() {
+      this.saveHistoriquePrix();
+      
+      const historiquePrix = this.historiquePrix
   
-    this.prixActuel *= (1 - this.quantiteEnCirculation / this.maxqqt);
+      // Calculer la tendance basée sur l'historique des prix
+      const historicalChange = historiquePrix.length > 1 ? historiquePrix[historiquePrix.length - 1] - historiquePrix[historiquePrix.length - 2] : 0;
+      console.log(historicalChange)
+      const random = Math.random();
   
-    if (this.prixActuel > this.prixInitial) {
-      this.poidsMontee -= 0.01; // Réduction du poids de la montée
-      this.poidsDescente += 0.01; // Augmentation du poids de la descente
-    } else {
-      this.poidsMontee += 0.01; // Augmentation du poids de la montée
-      this.poidsDescente -= 0.01; // Réduction du poids de la descente
-    }
-  
-    this.poidsMontee = Math.max(0, Math.min(1, this.poidsMontee)); // Limitez les poids entre 0 et 1
-    this.poidsDescente = Math.max(0, Math.min(1, this.poidsDescente));
-  
-    // Maintenant, mettez à jour les prix des entreprises dans la liste des entreprises
-    const priceChange = this.prixActuel - this.prixInitial;
-    this.enterprises.forEach((enterprise) => {
-      if (priceChange > 0) {
-        enterprise.updateStockPrice(enterprise.stockPrice + priceChange);
-      } else if (priceChange < 0) {
-        const absPriceChange = Math.abs(priceChange);
-        enterprise.updateStockPrice(Math.max(0, enterprise.stockPrice - absPriceChange));
+      if (random < this.poidsMontee || historicalChange < 0) {
+        this.prixActuel *= 1.2; // Augmentation de 2%
+      } else if (random < this.poidsMontee + this.poidsDescente) {
+        this.prixActuel *= 0.98; // Diminution de 2%
       }
-    });
   
-    // Enregistrez les modifications dans la base de données
-    this.saveEnterprises();
-  }
+      this.prixActuel *= (1 - this.quantiteEnCirculation / this.maxqqt);
+  
+      if (this.prixActuel > this.prixInitial) {
+        this.poidsMontee -= 0.01; // Réduction du poids de la montée
+        this.poidsDescente += 0.01; // Augmentation du poids de la descente
+      } else {
+        this.poidsMontee += 0.01; // Augmentation du poids de la montée
+        this.poidsDescente -= 0.01; // Réduction du poids de la descente
+      }
+  
+      this.poidsMontee = Math.max(0, Math.min(1, this.poidsMontee)); // Limitez les poids entre 0 et 1
+      this.poidsDescente = Math.max(0, Math.min(1, this.poidsDescente));
+  
+      // Maintenant, mettez à jour les prix des entreprises dans la liste des entreprises
+      const priceChange = this.prixActuel - this.prixInitial;
+      this.enterprises.forEach((enterprise) => {
+        if (priceChange > 0) {
+          enterprise.updateStockPrice(enterprise.stockPrice + priceChange);
+        } else if (priceChange < 0) {
+          const absPriceChange = Math.abs(priceChange);
+          enterprise.updateStockPrice(Math.max(0, enterprise.stockPrice - absPriceChange));
+        }
+      });
+  
+      // Enregistrez les modifications dans la base de données
+      this.saveEnterprises();
+    }
+  
+    // ...
+  
+  
+  
   
 
   updateEnterpriseStockPrice(enterpriseIndex, newPrice) {
@@ -192,7 +230,7 @@ class Bourse {
         // Enregistrer la liste mise à jour des comptes bancaires dans la base de données
         this.db.set('bankAccounts', this.bankAccounts);
 
-        console.log(`Bot account ${botAccountId} saved successfully.`);
+        //console.log(`Bot account ${botAccountId} saved successfully.`);
       } catch (error) {
         console.error('Error while saving bot account:', error);
       }
@@ -210,7 +248,8 @@ class Bourse {
 
   
   // Exemple d'utilisation :
-  const bourse = new Bourse("listembour", 100, 100, 500);
+  const bourse = new Bourse("listembourg", 100, 100, 500)
+  bourse.load()
   
   const account1Id = bourse.addBankAccount(1000);
   const account2Id = bourse.addBankAccount(2000);
@@ -224,8 +263,8 @@ class Bourse {
 // Exemple d'utilisation :
 
 
-bourse.addEnterprise("Company A", 100);
-bourse.addEnterprise("Company B", 200);
+bourse.addenterprise("Company A", 100);
+bourse.addenterprise("Company B", 200);
 
 // ... Utilisez d'autres fonctionnalités de la classe Bourse ...
 
@@ -252,33 +291,28 @@ bourse.enterprises.forEach((enterprise, enterpriseIndex) => {
 
 // Exemple d'utilisation :
 
-const botAccountId = bourse.createBotAccount(50000000000000)
+
 
 // Fonction pour que le bot prenne des décisions d'achat et de vente en fonction du pourcentage de changement
-function makeBotDecisionsBasedOnPercentageChange() {
-  bourse.saveBotAccount(botAccountId);
-  bourse.enterprises.forEach((enterprise, enterpriseIndex) => {
- 
-  });
-}
-function makeBotDecisionsBasedOnPercentageChange() {
-  bourse.saveBotAccount(botAccountId);
+class Bot {
+  constructor(bourse, initialPrices) {
+    this.botAccountId = bourse.addBankAccount(5000); // Créer un compte bancaire pour le bot
+    this.bourse = bourse;
+    this.initialPrices = initialPrices;
+  }
 
-  for (let enterpriseIndex = 0; enterpriseIndex < bourse.enterprises.length; enterpriseIndex++) {
-    const enterprise = bourse.enterprises[enterpriseIndex];
-    console.log(enterprise)
-    if (!enterprise) {
-      console.log(`Invalid enterprise at index ${enterpriseIndex}.`);
-      continue; // Passe à l'entreprise suivante en cas d'entreprise invalide
+  makeDecisionsBasedOnPercentageChange(enterprise) {
+    const enterpriseIndex = this.bourse.enterprises.indexOf(enterprise);
+
+    if (enterpriseIndex === -1) {
+      console.log(`Enterprise not found in the bourse.`);
+      return; // Sort de la fonction si l'entreprise n'est pas trouvée
     }
-    if (!enterprise) {
-      console.log(`Invalid enterprise index for enterprise at index ${enterpriseIndex}.`);
-      continue
-      ;
-    }
+
+    this.bourse.saveBotAccount(this.botAccountId);
 
     // Calculez le pourcentage de changement par rapport au prix initial
-    const initialPrice = initialPrices[enterpriseIndex];
+    const initialPrice = this.initialPrices[enterpriseIndex];
     const currentPrice = enterprise.stockPrice;
     const percentageChange = ((currentPrice - initialPrice) / initialPrice) * 100;
 
@@ -292,8 +326,8 @@ function makeBotDecisionsBasedOnPercentageChange() {
         const amountToBuy = currentSharesAvailable; // Achetez autant d'actions que possible
         const totalCost = enterprise.stockPrice * amountToBuy;
 
-        if (totalCost <= bourse.getBalance(botAccountId)) {
-          const purchaseSuccess = bourse.buyShares(botAccountId, enterpriseIndex, amountToBuy);
+        if (totalCost <= this.bourse.getBalance(this.botAccountId)) {
+          const purchaseSuccess = this.bourse.buyShares(this.botAccountId, enterpriseIndex, amountToBuy);
 
           if (purchaseSuccess) {
             console.log(`Bot bought ${amountToBuy} shares of ${enterprise.name} at $${enterprise.stockPrice.toFixed(2)} each.`);
@@ -304,28 +338,27 @@ function makeBotDecisionsBasedOnPercentageChange() {
           console.log(`Bot cannot buy shares of ${enterprise.name} due to insufficient funds.`);
         }
       } else {
-        console.log(`Bot cannot buy shares of ${enterprise.name} due to insufficient available shares.`);
+       // console.log(`Bot cannot buy shares of ${enterprise.name} due to insufficient available shares.`);
       }
     } else if (percentageChange >= 10) {
       const currentShares = enterprise.getAvailableShares();
       const amountToSell = currentShares;
       const earnings = enterprise.stockPrice * amountToSell;
-      bourse.sellShares(botAccountId, enterpriseIndex, amountToSell);
+      this.bourse.sellShares(this.botAccountId, enterpriseIndex, amountToSell);
       console.log(`Bot sold ${amountToSell} shares of ${enterprise.name} at $${enterprise.stockPrice.toFixed(2)} each and earned $${earnings.toFixed(2)}.`);
     }
-    // ... (le reste de la logique de décision du bot)
-
-    // Si vous voulez que le bot examine toutes les entreprises, vous pouvez supprimer la logique de décision ci-dessous et la remplacer par la vôtre.
   }
 }
 
+// Exemple d'utilisation :
+const bot = new Bot(bourse, initialPrices);
+setInterval(() => {
+  bourse.genererPrixAleatoire()
+  for (let index = 0; index < bourse.enterprises.length; index++) {
+    const element = bourse.enterprises[index];
+    bot.makeDecisionsBasedOnPercentageChange(element);
+  } 
+}, 1000);
 
+const enterpriseToMonitor = bourse.enterprises[0]; // Remplacez par l'entreprise que vous souhaitez que le bot surveille
 
-
-// Simulez les décisions du bot à intervalles réguliers (par exemple, toutes les secondes)
-setInterval(makeBotDecisionsBasedOnPercentageChange, 1000);
-
-// N'oubliez pas de fermer l'application lorsque vous avez terminé
-setTimeout(() => {
-  bourse.closeApp();
-}, 10000); // Par exemple, fermez l'application après 10 secondes

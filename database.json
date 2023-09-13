@@ -1,102 +1,41 @@
 {
     "bankAccounts": [
         {
-            "id": "664cbf6c-1c1e-463a-a396-dbd4da7f5d75",
-            "balance": 1000
+            "id": "4143876e-7acb-4c19-9176-e219686a609f",
+            "balance": 1000,
+            "stocks": []
         },
         {
-            "id": "bcf4d37b-8db1-42c2-b312-0a8dfaf0b5f5",
-            "balance": 2000
+            "id": "437ba6df-30d2-4851-9012-5f94b13ee94f",
+            "balance": 2000,
+            "stocks": []
         },
         {
-            "id": "728195e7-b752-47a1-a871-f2ebfcc75f4b",
-            "balance": 50000000000000
-        },
-        {
-            "id": "1663bae3-5bd7-4567-8f45-17cad0dd36c1",
-            "balance": 1000
-        },
-        {
-            "id": "2915f456-e507-45fb-ad22-e461f5f25b64",
-            "balance": 2000
-        },
-        {
-            "id": "55dd3e6f-a703-4473-8c96-30686ff7b0d1",
-            "balance": 50000000000000
-        },
-        {
-            "id": "04b8f340-56c3-4eea-99c7-40e1ff67fd5f",
-            "balance": 1000
-        },
-        {
-            "id": "aa6b292b-bd74-4b33-9051-f657fd71ab4e",
-            "balance": 2000
-        },
-        {
-            "id": "60dca810-1eeb-4c02-8e08-9ee2f1b361ef",
-            "balance": 50000000000000
-        },
-        {
-            "id": "d988e5e3-d323-4f30-a7a5-cbde7a8fac22",
-            "balance": 1000
-        },
-        {
-            "id": "911b0b7c-93c6-49ea-88d1-d09f09924655",
-            "balance": 2000
-        },
-        {
-            "id": "51722e7e-8fb3-4ce9-936e-74daf9859682",
-            "balance": 49999999996013.44
-        },
-        {
-            "id": "601c36cf-b47f-4e6d-9df1-51299fb99e99",
-            "balance": 1000
-        },
-        {
-            "id": "b2406cbd-0b41-4257-9180-b0665ba9542f",
-            "balance": 2000
-        },
-        {
-            "id": "0d845e66-ba65-4aa5-be51-a66df1c11aef",
-            "balance": 50000000000000
-        },
-        {
-            "id": "37c5faf9-0d69-4c9e-8517-87ec6090dab9",
-            "balance": 1000
-        },
-        {
-            "id": "2051c844-546a-4157-a9c6-5a13cc7b0c63",
-            "balance": 2000
-        },
-        {
-            "id": "4a81d35d-b65c-478d-829c-cc0e90f50a11",
-            "balance": 49999999996013.44
-        }
-    ],
-    "enterprises": [
-        {
-            "name": "Company A",
-            "stockPrice": 39.865600000000015,
-            "availableShares": 0
-        },
-        {
-            "name": "Company B",
-            "stockPrice": 139.86560000000003,
-            "availableShares": 100
+            "id": "44ac378b-125c-451d-b886-5259aa3c0227",
+            "balance": 2408.2560000000003,
+            "stocks": []
         }
     ],
     "historiquePrix": [
         100,
         78.4,
-        100,
-        78.4,
-        100,
-        81.60000000000001,
-        100,
-        78.4,
-        100,
-        78.4,
-        100,
-        78.4
+        75.264,
+        72.25344,
+        69.3633024,
+        66.588770304
+    ],
+    "enterprises": [
+        {
+            "name": "Company A",
+            "stockPrice": 0,
+            "dbKey": "Company A",
+            "availableShares": 0
+        },
+        {
+            "name": "Company B",
+            "stockPrice": 25.79473219583997,
+            "dbKey": "Company B",
+            "availableShares": 100
+        }
     ]
 }
