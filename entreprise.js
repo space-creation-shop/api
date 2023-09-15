@@ -1,5 +1,5 @@
 const SimpleJsonDB = require('simple-json-db');
-const db = new SimpleJsonDB('enterpriseData.json'); // Créez une base de données pour stocker les données de l'entreprise
+const db = new SimpleJsonDB('database.json'); // Créez une base de données pour stocker les données de l'entreprise
 
 class Enterprise {
   constructor(name, initialStockPrice) {
@@ -10,6 +10,8 @@ class Enterprise {
   }
 
   updateStockPrice(newPrice) {
+    console.log(typeof newPrice)
+    console.log(`le prix de l'action est a ${newPrice}`)
     this.stockPrice = newPrice;
   }
 

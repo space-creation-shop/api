@@ -11,8 +11,8 @@ class Bourse {
     this.prixActuel = prixInitial;
     this.quantiteEnCirculation = quantiteEnCirculation;
     this.maxqqt = maxqqt;
-    this.poidsMontee = 0.7;
-    this.poidsDescente = 0.4;
+    this.poidsMontee = 0.5;
+    this.poidsDescente = 0.5;
 
     
     this.bankAccounts = this.db.get('bankAccounts') ||[]
@@ -25,6 +25,7 @@ class Bourse {
       return this
     }
     this.db.get('enterprises').map((item)=>{
+      console.log(item)
       this.addenterprise(item.name,item.StockPrice)
     })
     return this
@@ -105,16 +106,18 @@ class Bourse {
   
       // Calculer la tendance basée sur l'historique des prix
       const historicalChange = historiquePrix.length > 1 ? historiquePrix[historiquePrix.length - 1] - historiquePrix[historiquePrix.length - 2] : 0;
-      console.log(historicalChange)
+      console.log(this.poidsMontee)
       const random = Math.random();
   
-      if (random < this.poidsMontee || historicalChange < 0) {
-        this.prixActuel *= 1.2; // Augmentation de 2%
-      } else if (random < this.poidsMontee + this.poidsDescente) {
-        this.prixActuel *= 0.98; // Diminution de 2%
+      if (random < this.poidsMontee || historicalChange > 0) {
+        console.log("augmentation")
+        this.prixActuel *= 1.1; // Augmentation de 2%
+      } else   {
+        console.log("diminution")
+        this.prixActuel *= 0.99; // Diminution de 2%
       }
   
-      this.prixActuel *= (1 - this.quantiteEnCirculation / this.maxqqt);
+      
   
       if (this.prixActuel > this.prixInitial) {
         this.poidsMontee -= 0.01; // Réduction du poids de la montée
@@ -125,16 +128,16 @@ class Bourse {
       }
   
       this.poidsMontee = Math.max(0, Math.min(1, this.poidsMontee)); // Limitez les poids entre 0 et 1
-      this.poidsDescente = Math.max(0, Math.min(1, this.poidsDescente));
+      this.poidsDescente = 1-this.poidsMontee
   
       // Maintenant, mettez à jour les prix des entreprises dans la liste des entreprises
       const priceChange = this.prixActuel - this.prixInitial;
       this.enterprises.forEach((enterprise) => {
         if (priceChange > 0) {
-          enterprise.updateStockPrice(enterprise.stockPrice + priceChange);
+          this.updateStockPrice(enterprise,enterprise.stockPrice + priceChange);
         } else if (priceChange < 0) {
           const absPriceChange = Math.abs(priceChange);
-          enterprise.updateStockPrice(Math.max(0, enterprise.stockPrice - absPriceChange));
+          this.updateStockPrice(enterprise,Math.max(0, enterprise.stockPrice - absPriceChange));
         }
       });
   
@@ -142,18 +145,18 @@ class Bourse {
       this.saveEnterprises();
     }
   
-    // ...
+    
   
   
   
   
 
-  updateEnterpriseStockPrice(enterpriseIndex, newPrice) {
-    const enterprise = this.enterprises[enterpriseIndex];
+  updateStockPrice(enterprises, newPrice) {
+    const enterprise = enterprises;
     if (enterprise) {
       enterprise.updateStockPrice(newPrice);
       this.saveEnterprises();
-      console.log(`Stock price for ${enterprise.name} updated to $${newPrice.toFixed(2)}.`);
+      console.log(`Stock price for ${enterprise.name} updated to ${newPrice.toFixed(2)}.`);
     } else {
       console.log("Invalid enterprise index.");
     }
@@ -246,7 +249,7 @@ class Bourse {
 }
  // Exportez la classe Bourse pour pouvoir l'utiliser dans d'autres fichiers
 
-  
+  module.exports=Bourse
   // Exemple d'utilisation :
   const bourse = new Bourse("listembourg", 100, 100, 500)
   bourse.load()
@@ -310,7 +313,7 @@ class Bot {
     }
 
     this.bourse.saveBotAccount(this.botAccountId);
-
+    this.bourse.saveBankAccounts()
     // Calculez le pourcentage de changement par rapport au prix initial
     const initialPrice = this.initialPrices[enterpriseIndex];
     const currentPrice = enterprise.stockPrice;
@@ -345,7 +348,7 @@ class Bot {
       const amountToSell = currentShares;
       const earnings = enterprise.stockPrice * amountToSell;
       this.bourse.sellShares(this.botAccountId, enterpriseIndex, amountToSell);
-      console.log(`Bot sold ${amountToSell} shares of ${enterprise.name} at $${enterprise.stockPrice.toFixed(2)} each and earned $${earnings.toFixed(2)}.`);
+    //  console.log(`Bot sold ${amountToSell} shares of ${enterprise.name} at $${enterprise.stockPrice.toFixed(2)} each and earned $${earnings.toFixed(2)}.`);
     }
   }
 }
@@ -360,5 +363,5 @@ setInterval(() => {
   } 
 }, 1000);
 
-const enterpriseToMonitor = bourse.enterprises[0]; // Remplacez par l'entreprise que vous souhaitez que le bot surveille
+// Remplacez par l'entreprise que vous souhaitez que le bot surveille
 

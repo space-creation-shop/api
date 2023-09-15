@@ -1,5 +1,5 @@
 const SimpleJsonDB = require('simple-json-db');
-const db = new SimpleJsonDB('stockPrices.json'); // Créez une base de données pour stocker les prix des actions
+const db = new SimpleJsonDB('database.json'); // Créez une base de données pour stocker les prix des actions
 
 // Fonction pour stocker les prix des actions
 function setStockPrice(symbol, price) {
