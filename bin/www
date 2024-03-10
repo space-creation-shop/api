@@ -44,7 +44,7 @@ io.on('connection', (socket) => {
   setInterval(() => {
 
     bourse.genererPrixAleatoire(); // Valeur aléatoire pour l'exemple
-    socket.emit('nouvelleValeur', bourse.getPrixActuel());
+    socket.emit('nouvelleValeur', bourse.prixActuel);
   }, 1000);
 });
 

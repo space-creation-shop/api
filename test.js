@@ -11,7 +11,7 @@ class Bourse {
     this.prixActuel = prixInitial;
     this.quantiteEnCirculation = quantiteEnCirculation;
     this.maxqqt = maxqqt;
-    this.poidsMontee = 0.5;
+    this.poidsMontee = 0.7;
     this.poidsDescente = 0.5;
 
     
@@ -97,7 +97,7 @@ class Bourse {
     }
   }
 
-    // ...
+   
   
     genererPrixAleatoire() {
       this.saveHistoriquePrix();
@@ -106,12 +106,12 @@ class Bourse {
   
       // Calculer la tendance basée sur l'historique des prix
       const historicalChange = historiquePrix.length > 1 ? historiquePrix[historiquePrix.length - 1] - historiquePrix[historiquePrix.length - 2] : 0;
-      console.log(this.poidsMontee)
+      console.log(this)
       const random = Math.random();
   
-      if (random < this.poidsMontee || historicalChange > 0) {
+      if (random < this.poidsMontee) {
         console.log("augmentation")
-        this.prixActuel *= 1.1; // Augmentation de 2%
+        this.prixActuel *= 1.01; // Augmentation de 2%
       } else   {
         console.log("diminution")
         this.prixActuel *= 0.99; // Diminution de 2%
@@ -133,11 +133,12 @@ class Bourse {
       // Maintenant, mettez à jour les prix des entreprises dans la liste des entreprises
       const priceChange = this.prixActuel - this.prixInitial;
       this.enterprises.forEach((enterprise) => {
+        console.log(priceChange)
         if (priceChange > 0) {
-          this.updateStockPrice(enterprise,enterprise.stockPrice + priceChange);
+          enterprise.updateStockPrice(enterprise.stockPrice + priceChange);
         } else if (priceChange < 0) {
           const absPriceChange = Math.abs(priceChange);
-          this.updateStockPrice(enterprise,Math.max(0, enterprise.stockPrice - absPriceChange));
+          enterprise.updateStockPrice(Math.max(0, enterprise.stockPrice - absPriceChange));
         }
       });
   
@@ -299,7 +300,7 @@ bourse.enterprises.forEach((enterprise, enterpriseIndex) => {
 // Fonction pour que le bot prenne des décisions d'achat et de vente en fonction du pourcentage de changement
 class Bot {
   constructor(bourse, initialPrices) {
-    this.botAccountId = bourse.addBankAccount(5000); // Créer un compte bancaire pour le bot
+    this.botAccountId = bourse.addBankAccount(5*10e6); // Créer un compte bancaire pour le bot
     this.bourse = bourse;
     this.initialPrices = initialPrices;
   }

@@ -10,6 +10,7 @@ class Enterprise {
   }
 
   updateStockPrice(newPrice) {
+    console.log(newPrice)
     console.log(typeof newPrice)
     console.log(`le prix de l'action est a ${newPrice}`)
     this.stockPrice = newPrice;

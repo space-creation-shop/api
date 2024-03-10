@@ -13,7 +13,7 @@ setStockPrice('AAPL', 150.00);
 
 // Fonction pour calculer le montant de la vente en fonction du symbole de l'action et de la quantité
 function calculateSaleAmount(symbol, quantity) {
-  const stockPrices = db.get('stockPrices', )||{};
+  const stockPrices = db.get('stockPrices' )||{};
   
   // Vérifiez si le symbole de l'action existe dans les prix stockés
   if (symbol in stockPrices) {
